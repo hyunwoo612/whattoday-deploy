@@ -7,46 +7,62 @@ const path = require('path');
 const admin = require('firebase-admin');
 const fs = require('fs');
 const app = express();
-const serviceAccount = require('../frontend/admin SDK/whattoday-61d7b-firebase-adminsdk-yp10e-73ad4b3ab3.json')
-const PORT = 3001; // 포트번호 설정
-const https = require('https');
+
+const dotenv = require('dotenv')
+
+dotenv.config();
+
+const PORT = process.env.PORT || 3001;
+
+const serviceAccount = {
+  type: process.env.FIREBASE_TYPE,
+  project_id: process.env.FIREBASE_PROJECT_ID,
+  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle newlines
+  client_email: process.env.FIREBASE_CLIENT_EMAIL,
+  client_id: process.env.FIREBASE_CLIENT_ID,
+  auth_uri: process.env.FIREBASE_AUTH_URI,
+  token_uri: process.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
+};
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
 const db = mysql.createPool({
-  host: "124.63.142.219", // 호스트
-  user: "today", // 데이터베이스 계정
-  password: "1234", // 데이터베이스 비밀번호
+  host: process.env.DB_HOST, // 호스트
+  user: process.env.DB_USER, // 데이터베이스 계정
+  password: process.env.DB_PASSWORD, // 데이터베이스 비밀번호
   database: "personaldata", // 사용할 데이터베이스
 });
 
 const db2 = mysql.createConnection({
-  host: "124.63.142.219",
-  user: "today",
-  password: "1234",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   database: "image_uploads"
 });
 
 const db3 = mysql.createPool({
-  host: "124.63.142.219",
-  user: "today",
-  password: "1234",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   database: "diary_uploads"
 });
 
 const db4 = mysql.createConnection({
-  host: '124.63.142.219',
-  user: 'today', // 데이터베이스 사용자명
-  password: '1234', // 데이터베이스 비밀번호
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER, // 데이터베이스 사용자명
+  password: process.env.DB_PASSWORD, // 데이터베이스 비밀번호
   database: 'school_num' // 데이터베이스 이름
 });
 
 const db5 = mysql.createConnection({
-  host: '124.63.142.219',
-  user: 'today',
-  password: '1234',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   database: 'today'
 });
 
@@ -72,16 +88,13 @@ app.use(express.json()); // JSON 형태의 요청을 파싱하도록 추가
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const option = {
-  key: fs.readFileSync(__dirname + '/key.pem', 'utf-8'),
-  cert: fs.readFileSync(__dirname + '/cert.pem', 'utf-8'),
-};
-
-const server = https.createServer(option, app);
-server.listen(PORT, () => {
-  console.log(`Server running on https://localhost:${PORT}`);
+app.get('/', (req, res)=>{
+	res.send('hello express');
 });
 
+app.listen(PORT, () => {
+	console.log(PORT, '번 포트에서 대기 중');
+});
 
 app.get("/schooldata", (req, res) => {
   const email = req.query.email;
